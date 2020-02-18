@@ -1,3 +1,0 @@
-/home/kir/projects/pcb/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/kir/projects/pcb/cmake-build-debug/CMakeFiles/pcb.dir
-/home/kir/projects/pcb/cmake-build-debug/CMakeFiles/edit_cache.dir
