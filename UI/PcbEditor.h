@@ -14,7 +14,7 @@
 
 class PcbEditor : public Gtk::DrawingArea
 {
-    std::optional<std::unique_ptr<ViewItem>> _brushItem;
+    std::optional<std::shared_ptr<SchemeItem>> _brushItem;
     Point<double> _mousePointer;
     double _gridSize;
     std::vector<double> _grid;
@@ -35,6 +35,9 @@ protected:
     bool on_key_press_event(GdkEventKey *key_event) override;
 
     bool on_key_release_event(GdkEventKey *key_event) override;
+
+private:
+    void redraw();
 };
 
 

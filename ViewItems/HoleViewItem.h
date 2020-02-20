@@ -11,6 +11,8 @@
 class HoleViewItem : public ViewItem {
 public:
     void draw(const Cairo::RefPtr<Cairo::Context> &cr, const SchemeItem *modelItem) const override;
+
+    Rect<double> getBoundingRect(const SchemeItem *modelItem) const override;
 };
 
 

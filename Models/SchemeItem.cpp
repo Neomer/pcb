@@ -4,7 +4,7 @@
 
 #include "SchemeItem.h"
 
-SchemeItem::SchemeItem(const ViewItem *viewItem) : _viewItem(viewItem) {
+SchemeItem::SchemeItem(ViewItem *viewItem) : _viewItem(viewItem) {
 }
 
 SchemeItem::~SchemeItem() {

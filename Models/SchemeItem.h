@@ -10,15 +10,15 @@
 #include "../ViewItems/ViewItem.h"
 
 class SchemeItem {
-    const ViewItem *_viewItem;
+    ViewItem *_viewItem;
     
 public:
-    explicit SchemeItem(const ViewItem *viewItem);
+    explicit SchemeItem(ViewItem *viewItem);
     ~SchemeItem();
     
     Point<double> position;
     
-    [[nodiscard]] inline const ViewItem *viewItem() const { return _viewItem; };
+    [[nodiscard]] inline ViewItem *viewItem() { return _viewItem; };
 };
 
 
