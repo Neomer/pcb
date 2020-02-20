@@ -34,6 +34,15 @@ public:
         return Point<TDimension>{ this->x + value, this->y + value };
     }
 
+    [[nodiscard]] bool operator !=(const Point<TDimension> &other) const {
+        return this->x != other.x || this->y != other.y;
+    }
+
+    void operator +=(const Point<TDimension> &other) {
+        this->x += other.x;
+        this->y += other.y;
+    }
+
     [[nodiscard]] double distanceTo(const Point<TDimension> &target) const {
         return sqrt((x - target.x) * (x - target.x) + (y - target.y) * (y - target.y));
     }

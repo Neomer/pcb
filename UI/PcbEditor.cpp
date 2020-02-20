@@ -144,6 +144,8 @@ bool PcbEditor::on_button_press_event(GdkEventButton *button_event) {
             _mouseButtonState |= RIGHT_BUTTON;
             if (_brushItem.has_value()) {
                 _brushItem.reset();
+            } else {
+                resetSelected();
             }
             break;
         }
@@ -160,6 +162,16 @@ bool PcbEditor::on_button_release_event(GdkEventButton *release_event) {
         case 1: // left click
         {
             _mouseButtonState &= ~LEFT_BUTTON;
+            if (_mousePressPoint.has_value() && _mousePointer != _mousePressPoint.value()) {
+                auto diff = _mousePointer - _mousePressPoint.value();
+                for (auto &item : _model.items()) {
+                    if (item->viewItem()->selected) {
+                        item->position += diff;
+                    }
+                }
+                redraw();
+            }
+            break;
         }
 
         case 3: // right click
@@ -216,5 +228,16 @@ void PcbEditor::redraw() {
         Gdk::Rectangle r(0, 0, width, height);
         win->invalidate_rect(r, false);
     }
+}
+
+void PcbEditor::resetSelected() {
+    for (auto &item : _model.items()) {
+        item->viewItem()->selected = false;
+    }
+}
+
+void PcbEditor::selectBrush(std::shared_ptr<SchemeItem> item) {
+    _brushItem = item;
+    resetSelected();
 }
 

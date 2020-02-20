@@ -27,6 +27,8 @@ class PcbEditor : public Gtk::DrawingArea
 public:
     PcbEditor(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder> &builder);
 
+    void selectBrush(std::shared_ptr<SchemeItem> item);
+
 protected:
     bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
 
@@ -42,6 +44,7 @@ protected:
 
 private:
     void redraw();
+    void resetSelected();
 };
 
 

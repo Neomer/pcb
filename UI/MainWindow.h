@@ -20,6 +20,9 @@ class MainWindow : public Gtk::Window {
 public:
     MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder> &builder);
     ~MainWindow() override;
+
+protected:
+    void setTool(std::shared_ptr<SchemeItem> item);
 };
 
 
