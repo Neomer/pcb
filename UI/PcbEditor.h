@@ -5,6 +5,7 @@
 #ifndef PCB_PCBEDITOR_H
 #define PCB_PCBEDITOR_H
 
+#include <cinttypes>
 #include <optional>
 #include <gtkmm.h>
 
@@ -14,11 +15,14 @@
 
 class PcbEditor : public Gtk::DrawingArea
 {
-    std::optional<std::shared_ptr<SchemeItem>> _brushItem;
-    Point<double> _mousePointer;
-    double _gridSize;
-    std::vector<double> _grid;
-    SchemeModel _model;
+    std::optional<std::shared_ptr<SchemeItem>> _brushItem{ std::nullopt };
+    Point<double> _mousePointer{};
+    std::optional<Point<double>> _mousePressPoint{ std:: nullopt };
+    double _gridSize{10};
+    std::vector<double> _grid{1, 9};
+    SchemeModel _model{};
+    uint8_t _mouseButtonState{0};
+    bool _ignoreGrid{false};
 
 public:
     PcbEditor(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder> &builder);

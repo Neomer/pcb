@@ -11,7 +11,11 @@ void HoleViewItem::draw(const Cairo::RefPtr<Cairo::Context> &cr, const SchemeIte
     auto holeItem = static_cast<const HoleItem *>(modelItem); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
 
     cr->save();
-    cr->set_source_rgba(0.0, 0.6, 0.0, 1.0);
+    if (selected) {
+        cr->set_source_rgba(0.6, 0.6, 0.0, 1);
+    } else {
+        cr->set_source_rgba(0.0, 0.6, 0.0, 1.0);
+    }
     cr->arc(holeItem->position.x + holeItem->outerRadius,
             holeItem->position.y + holeItem->outerRadius,
             holeItem->outerRadius,

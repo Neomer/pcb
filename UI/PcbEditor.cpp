@@ -2,17 +2,19 @@
 #include "../Models/HoleItem.h"
 
 #include <iostream>
+#include <fmt/format.h>
 
 #define SELECTED_ITEM_RECT_SIZE          5
 #define SELECTED_ITEM_RECT_HALF_SIZE     2.5
 
+#define LEFT_BUTTON               0x01u
+#define RIGHT_BUTTON              0x02u
+#define MIDDLE_BUTTON             0x04u
+
 using namespace std;
 
 PcbEditor::PcbEditor(BaseObjectType *cobject, const Glib::RefPtr<Gtk::Builder> &builder) :
-    Gtk::DrawingArea{ cobject },
-    _brushItem{ nullopt },
-    _gridSize{ 10 },
-    _grid{ 1, 9 }
+    Gtk::DrawingArea{ cobject }
 {
     add_events(Gdk::BUTTON_MOTION_MASK |
                        Gdk::POINTER_MOTION_MASK |
@@ -61,50 +63,65 @@ bool PcbEditor::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
     // draw elements
     for (const auto &item : _model.items()) {
         item->viewItem()->draw(cr, item.get());
-        if (item->viewItem()->selected) {
-            auto boundingRect = item->viewItem()->getBoundingRect(item.get());
-            cr->save();
-            cr->set_line_width(1);
-            cr->set_source_rgb(0, 0, 1);
-            cr->rectangle(boundingRect.point.x - SELECTED_ITEM_RECT_HALF_SIZE,
-                          boundingRect.point.y - SELECTED_ITEM_RECT_HALF_SIZE,
-                          SELECTED_ITEM_RECT_SIZE,
-                          SELECTED_ITEM_RECT_SIZE);
-            cr->rectangle(boundingRect.point1.x - SELECTED_ITEM_RECT_HALF_SIZE,
-                          boundingRect.point1.y - SELECTED_ITEM_RECT_HALF_SIZE,
-                          SELECTED_ITEM_RECT_SIZE,
-                          SELECTED_ITEM_RECT_SIZE);
-            cr->rectangle(boundingRect.point.x - SELECTED_ITEM_RECT_HALF_SIZE,
-                          boundingRect.point1.y - SELECTED_ITEM_RECT_HALF_SIZE,
-                          SELECTED_ITEM_RECT_SIZE,
-                          SELECTED_ITEM_RECT_SIZE);
-            cr->rectangle(boundingRect.point1.x - SELECTED_ITEM_RECT_HALF_SIZE,
-                          boundingRect.point.y - SELECTED_ITEM_RECT_HALF_SIZE,
-                          SELECTED_ITEM_RECT_SIZE,
-                          SELECTED_ITEM_RECT_SIZE);
-            cr->fill_preserve();
-            cr->restore();
-        }
     }
 
     // draw mouse helpers
+    auto formattedMousePointer = _mousePointer + 0.5;
     cr->save();
     cr->set_line_width(1);
     cr->set_source_rgba(0.8, 0.8, 0.8, 0.3);
-    cr->move_to(_mousePointer.x, 0);
-    cr->line_to(_mousePointer.x, height);
-    cr->move_to(0, _mousePointer.y);
-    cr->line_to(width, _mousePointer.y);
+    cr->move_to(formattedMousePointer.x, 0);
+    cr->line_to(formattedMousePointer.x, height);
+    cr->move_to(0, formattedMousePointer.y);
+    cr->line_to(width, formattedMousePointer.y);
     cr->stroke();
+    cr->restore();
+
+    if (_mousePressPoint.has_value()) {
+        cr->save();
+        cr->set_line_width(1);
+        cr->set_source_rgba(0.8, 0.8, 0.8, 0.3);
+        cr->move_to(_mousePressPoint.value().x, _mousePressPoint.value().y);
+        cr->line_to(formattedMousePointer.x, formattedMousePointer.y);
+        cr->stroke();
+        cr->restore();
+
+        cr->save();
+        auto diff = _mousePointer - _mousePressPoint.value();
+        cr->set_source_rgb(1.0, 1.0, 0);
+        cr->move_to(formattedMousePointer.x + 30, formattedMousePointer.y + 30);
+        cr->show_text(fmt::format("x: {:.3f}", diff.x));
+        cr->move_to(formattedMousePointer.x + 30, formattedMousePointer.y + 45);
+        cr->show_text(fmt::format("y: {:.3f}", diff.y));
+        cr->move_to(formattedMousePointer.x + 30, formattedMousePointer.y + 60);
+        cr->show_text(fmt::format("dist: {:.3f}", _mousePointer.distanceTo(_mousePressPoint.value())));
+        cr->restore();
+    }
+
+    //draw HUD
+    cr->save();
+    cr->set_line_width(1);
+    cr->set_source_rgb(0, 0, 0);
+    cr->rectangle(width - 150, 0, 150, 20);
+    cr->fill_preserve();
+    cr->set_source_rgb(1.0, 1.0, 0);
+    cr->move_to(width - 145, 15);
+    auto txt = fmt::format("x: {:.3f} y: {:.3f}", _mousePointer.x, _mousePointer.y);
+    cr->show_text(txt);
     cr->restore();
 
     return false;
 }
 
 bool PcbEditor::on_button_press_event(GdkEventButton *button_event) {
+    _mousePressPoint.emplace(
+            static_cast<int>(button_event->x / _gridSize) * _gridSize,
+            static_cast<int>(button_event->y / _gridSize) * _gridSize);
+
     switch (button_event->button) {
         case 1: // left click
         {
+            _mouseButtonState |= LEFT_BUTTON;
             if (_brushItem.has_value()) {
                 auto newItem = _brushItem.value();
                 newItem->position.x = button_event->x;
@@ -124,6 +141,7 @@ bool PcbEditor::on_button_press_event(GdkEventButton *button_event) {
 
         case 3: // right click
         {
+            _mouseButtonState |= RIGHT_BUTTON;
             if (_brushItem.has_value()) {
                 _brushItem.reset();
             }
@@ -138,12 +156,38 @@ bool PcbEditor::on_button_press_event(GdkEventButton *button_event) {
 }
 
 bool PcbEditor::on_button_release_event(GdkEventButton *release_event) {
+    switch (release_event->button) {
+        case 1: // left click
+        {
+            _mouseButtonState &= ~LEFT_BUTTON;
+        }
+
+        case 3: // right click
+        {
+            _mouseButtonState &= ~RIGHT_BUTTON;
+            break;
+        }
+
+        default:
+            return Widget::on_button_release_event(release_event);
+    }
+
+    _mousePressPoint.reset();
+    redraw();
+
     return Widget::on_button_release_event(release_event);
 }
 
 bool PcbEditor::on_motion_notify_event(GdkEventMotion *motion_event) {
-    _mousePointer.x = static_cast<int>(motion_event->x / _gridSize) * _gridSize + 0.5;
-    _mousePointer.y = static_cast<int>(motion_event->y / _gridSize) * _gridSize + 0.5;
+    _mousePointer.x = static_cast<int>(motion_event->x / _gridSize) * _gridSize;
+    _mousePointer.y = static_cast<int>(motion_event->y / _gridSize) * _gridSize;
+
+    if (_mouseButtonState & LEFT_BUTTON) {
+        for (auto &item : _model.items()) {
+
+        }
+    }
+
     redraw();
 
     return Widget::on_motion_notify_event(motion_event);
