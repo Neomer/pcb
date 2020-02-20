@@ -5,14 +5,14 @@
 #ifndef PCB_VIEWITEM_H
 #define PCB_VIEWITEM_H
 
-#include <cairo.h>
+#include <gtkmm.h>
 #include "../Core/Point.h"
 
 class SchemeItem;
 
 class ViewItem {
 public:
-    virtual void draw(cairo_t *cairo, const SchemeItem *modelItem) const = 0;
+    virtual void draw(const Cairo::RefPtr<Cairo::Context> &cr, const SchemeItem *modelItem) const = 0;
 };
 
 

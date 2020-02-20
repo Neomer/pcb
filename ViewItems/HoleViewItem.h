@@ -10,7 +10,7 @@
 
 class HoleViewItem : public ViewItem {
 public:
-    void draw(cairo_t *cairo, const SchemeItem *modelItem) const override;
+    void draw(const Cairo::RefPtr<Cairo::Context> &cr, const SchemeItem *modelItem) const override;
 };
 
 
