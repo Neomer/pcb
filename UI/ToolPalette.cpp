@@ -29,21 +29,22 @@ void ToolPalette::loadPalette() {
     add(*group);
     button = Gtk::manage(new Gtk::ToggleToolButton(_("Сквозное отверстие")));
     button->set_tooltip_text(_("Сквозное отверстие"));
-    button->signal_toggled().connect(bind(&ToolPalette::selectItem, this, std::make_shared<HoleItem>()));
+    button->signal_toggled().connect(bind(&ToolPalette::selectItem, this, ModelFactory::Model::HoleItem));
     group->insert(*button);
     
     button = Gtk::manage(new Gtk::ToggleToolButton(_("SMD-контакт")));
     button->set_tooltip_text(_("SMD-контакт"));
+    button->signal_toggled().connect(bind(&ToolPalette::selectItem, this, ModelFactory::Model::SMDContact));
     group->insert(*button);
 }
 
-void ToolPalette::onToolSelected(const std::function<void(std::shared_ptr<SchemeItem>)> &listener)
+void ToolPalette::onToolSelected(const std::function<void(ModelFactory::Model)> &listener)
 {
     _toolSelectedListener = listener;
 }
 
-void ToolPalette::selectItem(const std::shared_ptr<SchemeItem> &item) {
+void ToolPalette::selectItem(ModelFactory::Model modelType) {
     if (_toolSelectedListener.has_value()) {
-        _toolSelectedListener.value()(item);
+        _toolSelectedListener.value()(modelType);
     }
 }

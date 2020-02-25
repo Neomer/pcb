@@ -2,14 +2,14 @@
 // Created by kir on 15.02.2020.
 //
 
+#include <fmt/format.h>
+#include <iostream>
 #include "HoleViewItem.h"
 #include "../Models/HoleItem.h"
 
-#include <gtk/gtk.h>
-
 void HoleViewItem::draw(const Cairo::RefPtr<Cairo::Context> &cr, const SchemeItem *modelItem) const {
     auto holeItem = static_cast<const HoleItem *>(modelItem); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
-
+    
     cr->save();
     if (selected) {
         cr->set_source_rgba(0.6, 0.6, 0.0, 1);

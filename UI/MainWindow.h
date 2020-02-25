@@ -22,7 +22,7 @@ public:
     ~MainWindow() override;
 
 protected:
-    void setTool(std::shared_ptr<SchemeItem> item);
+    void setTool(ModelFactory::Model modelType);
 };
 
 

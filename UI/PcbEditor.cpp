@@ -24,15 +24,6 @@ PcbEditor::PcbEditor(BaseObjectType *cobject, const Glib::RefPtr<Gtk::Builder> &
                        Gdk::BUTTON_RELEASE_MASK);
 
     set_can_focus();
-
-    auto item = make_shared<HoleItem>();
-    item->outerRadius = 10;
-    item->innerRadius = 5;
-    item->position.x = 150;
-    item->position.y = 250;
-    item->viewItem()->selected = false;
-
-    _model.addItem(item);
 }
 
 bool PcbEditor::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
@@ -123,19 +114,18 @@ bool PcbEditor::on_button_press_event(GdkEventButton *button_event) {
         {
             _mouseButtonState |= LEFT_BUTTON;
             if (_brushItem.has_value()) {
-                auto newItem = _brushItem.value();
-                newItem->position.x = button_event->x;
-                newItem->position.y = button_event->y;
+                auto newItem = _modelFactory.build(_brushItem.value());
+                newItem->position.x = _mousePressPoint->x;
+                newItem->position.y = _mousePressPoint->y;
                 newItem->viewItem()->selected = true;
                 _model.addItem(newItem);
-                _brushItem.reset();
             } else {
                 Point<double> clickPoint{ button_event->x, button_event->y };
                 for (auto &item : _model.items()) {
                     item->viewItem()->selected = item->viewItem()->getBoundingRect(item.get()).contains(clickPoint);
                 }
-                redraw();
             }
+            redraw();
             break;
         }
 
@@ -162,7 +152,10 @@ bool PcbEditor::on_button_release_event(GdkEventButton *release_event) {
         case 1: // left click
         {
             _mouseButtonState &= ~LEFT_BUTTON;
-            if (_mousePressPoint.has_value() && _mousePointer != _mousePressPoint.value()) {
+            if (!_mousePressPoint.has_value()) {
+                break;
+            }
+            if (_mousePointer != _mousePressPoint.value()) {
                 auto diff = _mousePointer - _mousePressPoint.value();
                 for (auto &item : _model.items()) {
                     if (item->viewItem()->selected) {
@@ -236,8 +229,8 @@ void PcbEditor::resetSelected() {
     }
 }
 
-void PcbEditor::selectBrush(std::shared_ptr<SchemeItem> item) {
-    _brushItem = item;
+void PcbEditor::selectBrush(ModelFactory::Model modelType) {
+    _brushItem = modelType;
     resetSelected();
 }
 
