@@ -21,7 +21,10 @@ public:
     void onToolSelected(const std::function<void(ModelFactory::Model)> &listener);
 
 protected:
-    void selectItem(ModelFactory::Model modelType);
+    void selectItem(const Gtk::ToggleToolButton *button, ModelFactory::Model modelType);
+
+private:
+    void flushAllToggleButtons(Gtk::Container *container, const Gtk::ToggleToolButton *clicked);
 };
 
 
