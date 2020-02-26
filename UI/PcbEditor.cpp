@@ -1,11 +1,8 @@
 #include "PcbEditor.h"
-#include "../Models/HoleItem.h"
+#include "Scene.h"
 
 #include <iostream>
 #include <fmt/format.h>
-
-#define SELECTED_ITEM_RECT_SIZE          5
-#define SELECTED_ITEM_RECT_HALF_SIZE     2.5
 
 #define LEFT_BUTTON               0x01u
 #define RIGHT_BUTTON              0x02u

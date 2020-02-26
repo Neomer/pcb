@@ -13,6 +13,7 @@
 #include "../ViewItems/ViewItem.h"
 #include "../Models/SchemeModel.h"
 #include "../Models/ModelFactory.h"
+#include "Scene.h"
 
 class PcbEditor : public Gtk::DrawingArea
 {
@@ -25,6 +26,7 @@ class PcbEditor : public Gtk::DrawingArea
     uint8_t _mouseButtonState{0};
     bool _ignoreGrid{false};
     ModelFactory _modelFactory;
+    Scene _scene;
 
 public:
     PcbEditor(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder> &builder);
