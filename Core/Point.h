@@ -30,6 +30,10 @@ public:
         return Point<TDimension>{ this->x + other.x, this->y + other.y };
     }
 
+    [[nodiscard]] Point<TDimension> operator *(TDimension value) const {
+        return Point<TDimension>{ this->x * value, this->y * value };
+    }
+
     [[nodiscard]] Point<TDimension> operator +(TDimension value) const {
         return Point<TDimension>{ this->x + value, this->y + value };
     }
