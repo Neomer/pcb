@@ -14,8 +14,16 @@ void SmdContactViewItem::draw(const Cairo::RefPtr<Cairo::Context> &cr, const Sce
     } else {
         cr->set_source_rgba(0.0, 0.6, 0.0, 1.0);
     }
-    cr->rectangle(item->position.x, item->position.y, item->contactWidth, item->contactHeight);
-    cr->rectangle(item->position.x + item->contactDisplacement, item->position.y, item->contactWidth, item->contactHeight);
+    cr->rectangle(
+            item->position.x * scene.scale,
+            item->position.y * scene.scale,
+            item->contactWidth * scene.scale,
+            item->contactHeight * scene.scale);
+    cr->rectangle(
+            (item->position.x + item->contactDisplacement) * scene.scale,
+            (item->position.y) * scene.scale,
+            item->contactWidth * scene.scale,
+            item->contactHeight * scene.scale);
     cr->fill_preserve();
     cr->stroke();
     cr->restore();
