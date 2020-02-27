@@ -2,6 +2,8 @@
 // Created by kir on 21.01.2020.
 //
 
+#include <functional>
+#include <utility>
 #include <glib/gi18n.h>
 #include "MainWindow.h"
 #include "../ViewItems/HoleViewItem.h"
@@ -21,13 +23,12 @@ MainWindow::MainWindow(BaseObjectType *cobject, const Glib::RefPtr<Gtk::Builder>
     builder->get_widget_derived("drawingArea", _pcbEditor);
     builder->get_widget("contentPaned", _paned);
     _paned->set_position(100);
-
-    std::function<void(std::shared_ptr<SchemeItem>)> callback = std::bind(&MainWindow::setTool, this);
-    _palette->onToolSelected(callback);
+    
+    _palette->onToolSelected(bind(&MainWindow::setTool, this, placeholders::_1));
     
     maximize();
 }
 
-void MainWindow::setTool(std::shared_ptr<SchemeItem> item) {
-
+void MainWindow::setTool(ModelFactory::Model modelType) {
+    _pcbEditor->selectBrush(modelType);
 }

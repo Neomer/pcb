@@ -1,14 +1,14 @@
 //
-// Created by kir on 15.02.2020.
+// Created by kir on 26.02.2020.
 //
 
-#ifndef PCB_HOLEVIEWITEM_H
-#define PCB_HOLEVIEWITEM_H
+#ifndef PCB_SMDCONTACTVIEWITEM_H
+#define PCB_SMDCONTACTVIEWITEM_H
 
 
 #include "ViewItem.h"
 
-class HoleViewItem : public ViewItem {
+class SmdContactViewItem: public ViewItem {
 public:
     void draw(const Cairo::RefPtr<Cairo::Context> &cr, const Scene &scene, const SchemeItem *modelItem) const override;
 
@@ -18,4 +18,4 @@ public:
 };
 
 
-#endif //PCB_HOLEVIEWITEM_H
+#endif //PCB_SMDCONTACTVIEWITEM_H

@@ -1,11 +1,8 @@
 #include "PcbEditor.h"
-#include "../Models/HoleItem.h"
+#include "Scene.h"
 
 #include <iostream>
 #include <fmt/format.h>
-
-#define SELECTED_ITEM_RECT_SIZE          5
-#define SELECTED_ITEM_RECT_HALF_SIZE     2.5
 
 #define LEFT_BUTTON               0x01u
 #define RIGHT_BUTTON              0x02u
@@ -21,18 +18,10 @@ PcbEditor::PcbEditor(BaseObjectType *cobject, const Glib::RefPtr<Gtk::Builder> &
                        Gdk::KEY_PRESS_MASK  |
                        Gdk::KEY_RELEASE_MASK |
                        Gdk::BUTTON_PRESS_MASK |
-                       Gdk::BUTTON_RELEASE_MASK);
+                       Gdk::BUTTON_RELEASE_MASK |
+                       Gdk::SCROLL_MASK);
 
     set_can_focus();
-
-    auto item = make_shared<HoleItem>();
-    item->outerRadius = 10;
-    item->innerRadius = 5;
-    item->position.x = 150;
-    item->position.y = 250;
-    item->viewItem()->selected = false;
-
-    _model.addItem(item);
 }
 
 bool PcbEditor::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
@@ -62,7 +51,7 @@ bool PcbEditor::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
 
     // draw elements
     for (const auto &item : _model.items()) {
-        item->viewItem()->draw(cr, item.get());
+        item->viewItem()->draw(cr, _scene, item.get());
     }
 
     // draw mouse helpers
@@ -106,14 +95,22 @@ bool PcbEditor::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
     cr->fill_preserve();
     cr->set_source_rgb(1.0, 1.0, 0);
     cr->move_to(width - 145, 15);
-    auto txt = fmt::format("x: {:.3f} y: {:.3f}", _mousePointer.x, _mousePointer.y);
+    auto txt = fmt::format("x: {:.3f} y: {:.3f} sc:{:.1f}", _mousePointer.x, _mousePointer.y, _scene.scale);
     cr->show_text(txt);
     cr->restore();
 
     return false;
 }
 
+bool PcbEditor::on_scroll_event(GdkEventScroll *scroll_event) {
+    _scene.scale *= scroll_event->direction == GDK_SCROLL_DOWN ? 0.75 : 1.25;
+    redraw();
+
+    return Widget::on_scroll_event(scroll_event);
+}
+
 bool PcbEditor::on_button_press_event(GdkEventButton *button_event) {
+
     _mousePressPoint.emplace(
             static_cast<int>(button_event->x / _gridSize) * _gridSize,
             static_cast<int>(button_event->y / _gridSize) * _gridSize);
@@ -123,19 +120,18 @@ bool PcbEditor::on_button_press_event(GdkEventButton *button_event) {
         {
             _mouseButtonState |= LEFT_BUTTON;
             if (_brushItem.has_value()) {
-                auto newItem = _brushItem.value();
-                newItem->position.x = button_event->x;
-                newItem->position.y = button_event->y;
+                auto newItem = _modelFactory.build(_brushItem.value());
+                newItem->position.x = _mousePressPoint->x * (1 / _scene.scale);
+                newItem->position.y = _mousePressPoint->y * (1 / _scene.scale);
                 newItem->viewItem()->selected = true;
                 _model.addItem(newItem);
-                _brushItem.reset();
             } else {
                 Point<double> clickPoint{ button_event->x, button_event->y };
                 for (auto &item : _model.items()) {
-                    item->viewItem()->selected = item->viewItem()->getBoundingRect(item.get()).contains(clickPoint);
+                    item->viewItem()->selected = item->viewItem()->getBoundingRect(item.get(), _scene).contains(clickPoint);
                 }
-                redraw();
             }
+            redraw();
             break;
         }
 
@@ -144,9 +140,8 @@ bool PcbEditor::on_button_press_event(GdkEventButton *button_event) {
             _mouseButtonState |= RIGHT_BUTTON;
             if (_brushItem.has_value()) {
                 _brushItem.reset();
-            } else {
-                resetSelected();
             }
+            resetSelected();
             break;
         }
 
@@ -162,11 +157,14 @@ bool PcbEditor::on_button_release_event(GdkEventButton *release_event) {
         case 1: // left click
         {
             _mouseButtonState &= ~LEFT_BUTTON;
-            if (_mousePressPoint.has_value() && _mousePointer != _mousePressPoint.value()) {
+            if (!_mousePressPoint.has_value()) {
+                break;
+            }
+            if (_mousePointer != _mousePressPoint.value()) {
                 auto diff = _mousePointer - _mousePressPoint.value();
                 for (auto &item : _model.items()) {
                     if (item->viewItem()->selected) {
-                        item->position += diff;
+                        item->position += diff * (1 / _scene.scale);
                     }
                 }
                 redraw();
@@ -206,7 +204,6 @@ bool PcbEditor::on_motion_notify_event(GdkEventMotion *motion_event) {
 }
 
 bool PcbEditor::on_key_press_event(GdkEventKey *key_event) {
-    cout << "key pressed " << key_event->keyval << endl;
     switch (key_event->keyval) {
         case 26:
             break;
@@ -236,8 +233,8 @@ void PcbEditor::resetSelected() {
     }
 }
 
-void PcbEditor::selectBrush(std::shared_ptr<SchemeItem> item) {
-    _brushItem = item;
+void PcbEditor::selectBrush(ModelFactory::Model modelType) {
+    _brushItem = modelType;
     resetSelected();
 }
 

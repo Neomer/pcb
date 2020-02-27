@@ -12,10 +12,12 @@
 #include "../Core/Rect.h"
 #include "../ViewItems/ViewItem.h"
 #include "../Models/SchemeModel.h"
+#include "../Models/ModelFactory.h"
+#include "Scene.h"
 
 class PcbEditor : public Gtk::DrawingArea
 {
-    std::optional<std::shared_ptr<SchemeItem>> _brushItem{ std::nullopt };
+    std::optional<ModelFactory::Model> _brushItem{ std::nullopt };
     Point<double> _mousePointer{};
     std::optional<Point<double>> _mousePressPoint{ std:: nullopt };
     double _gridSize{10};
@@ -23,14 +25,18 @@ class PcbEditor : public Gtk::DrawingArea
     SchemeModel _model{};
     uint8_t _mouseButtonState{0};
     bool _ignoreGrid{false};
+    ModelFactory _modelFactory;
+    Scene _scene;
 
 public:
     PcbEditor(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder> &builder);
 
-    void selectBrush(std::shared_ptr<SchemeItem> item);
+    void selectBrush(ModelFactory::Model modelType);
 
 protected:
     bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
+
+    bool on_scroll_event(GdkEventScroll *scroll_event) override;
 
     bool on_button_press_event(GdkEventButton *button_event) override;
 
