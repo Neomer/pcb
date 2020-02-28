@@ -138,9 +138,7 @@ bool PcbEditor::on_button_press_event(GdkEventButton *button_event) {
         case 3: // right click
         {
             _mouseButtonState |= RIGHT_BUTTON;
-            if (_brushItem.has_value()) {
-                _brushItem.reset();
-            }
+            resetBrush();
             resetSelected();
             break;
         }
@@ -238,3 +236,16 @@ void PcbEditor::selectBrush(ModelFactory::Model modelType) {
     resetSelected();
 }
 
+void PcbEditor::onBrushReset(const std::function<void()> &listener) {
+    _brushResetFunc = listener;
+}
+
+void PcbEditor::resetBrush() {
+    if (!_brushItem.has_value()) {
+        return;
+    }
+    _brushItem.reset();
+    if (_brushResetFunc.has_value()) {
+        _brushResetFunc.value()();
+    }
+}

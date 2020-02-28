@@ -18,6 +18,7 @@
 class PcbEditor : public Gtk::DrawingArea
 {
     std::optional<ModelFactory::Model> _brushItem{ std::nullopt };
+    std::optional<std::function<void()>> _brushResetFunc;
     Point<double> _mousePointer{};
     std::optional<Point<double>> _mousePressPoint{ std:: nullopt };
     double _gridSize{10};
@@ -32,6 +33,8 @@ public:
     PcbEditor(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder> &builder);
 
     void selectBrush(ModelFactory::Model modelType);
+
+    void onBrushReset(const std::function<void()> &listener);
 
 protected:
     bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
@@ -51,6 +54,7 @@ protected:
 private:
     void redraw();
     void resetSelected();
+    void resetBrush();
 };
 
 

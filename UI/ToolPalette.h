@@ -19,12 +19,11 @@ public:
     ToolPalette(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder> &builder);
 
     void onToolSelected(const std::function<void(ModelFactory::Model)> &listener);
+    static void flushAllToggleButtons(Gtk::Container *container, const Gtk::ToggleToolButton *clicked);
 
 protected:
     void selectItem(const Gtk::ToggleToolButton *button, ModelFactory::Model modelType);
 
-private:
-    static void flushAllToggleButtons(Gtk::Container *container, const Gtk::ToggleToolButton *clicked);
 };
 
 

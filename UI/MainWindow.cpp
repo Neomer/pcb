@@ -25,6 +25,7 @@ MainWindow::MainWindow(BaseObjectType *cobject, const Glib::RefPtr<Gtk::Builder>
     _paned->set_position(100);
     
     _palette->onToolSelected(bind(&MainWindow::setTool, this, placeholders::_1));
+    _pcbEditor->onBrushReset(bind(&ToolPalette::flushAllToggleButtons, _palette, nullptr));
     
     maximize();
 }
